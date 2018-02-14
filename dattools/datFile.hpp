@@ -1,5 +1,5 @@
-#ifndef DATFILE_HPP
-#define DATFILE_HPP
+#ifndef ASZARCANUM_DATTOOLS_DATFILE_HPP
+#define ASZARCANUM_DATTOOLS_DATFILE_HPP
 
 #include <cstddef>
 #include <cstdint>
