@@ -26,12 +26,12 @@ struct FileTreeStore {
 						add( offset );
 				}
 
-				Gtk::TreeModelColumn< std::string >   name;
-				Gtk::TreeModelColumn< uint32_t > unknown0;
-				Gtk::TreeModelColumn< DAT1::File::SubfileIndex::Type > type;
-				Gtk::TreeModelColumn< uint32_t > realSize;
-				Gtk::TreeModelColumn< uint32_t > packedSize;
-				Gtk::TreeModelColumn< uint32_t > offset;
+				Gtk::TreeModelColumn< std::string > name;
+				Gtk::TreeModelColumn< uint32_t >    unknown0;
+				Gtk::TreeModelColumn< std::string > type;
+				Gtk::TreeModelColumn< uint32_t >    realSize;
+				Gtk::TreeModelColumn< uint32_t >    packedSize;
+				Gtk::TreeModelColumn< uint32_t >    offset;
 		};
 
 	public:
@@ -89,7 +89,7 @@ struct FileTreeStore {
 				}
 
 				DatTreeNode const & CreateChild( std::string_view n, std::optional< Gtk::TreeModel::iterator > const & it ) const {
-						if ( fileIndex && fileIndex->data.type != DAT1::File::SubfileIndex::Type::Directory ) {
+						if ( fileIndex && fileIndex->data.type != DAT1::File::SubfileIndex::Type::Dir ) {
 								throw "cannot create a child node inside a non-directory node";
 						}
 						auto p = children.emplace( n, it );
@@ -136,7 +136,17 @@ struct FileTreeStore {
 				if ( !node.fileIndex ) {   throw "trying to set attributes from uninitialized node... duh!";   }
 				auto & row = **node.gtkIt;   //< deref optional AND iter
 				row[gtkRecordModel.unknown0]   = node.fileIndex->data.unknown0;
-				row[gtkRecordModel.type]       = node.fileIndex->data.type;
+				switch ( node.fileIndex->data.type ) {
+					case DAT1::File::SubfileIndex::Type::Raw:
+						row[gtkRecordModel.type]  = "RAW";
+						break;
+					case DAT1::File::SubfileIndex::Type::Zlib:
+						row[gtkRecordModel.type]  = "ZLIB";
+						break;
+					case DAT1::File::SubfileIndex::Type::Dir:
+						row[gtkRecordModel.type]  = "DIR";
+						break;
+				}
 				row[gtkRecordModel.realSize]   = node.fileIndex->data.realSize;
 				row[gtkRecordModel.packedSize] = node.fileIndex->data.packedSize;
 				row[gtkRecordModel.offset]     = node.fileIndex->data.offset;

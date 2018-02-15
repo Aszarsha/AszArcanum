@@ -30,9 +30,9 @@ class File {
 		};
 
 		struct SubfileIndex {
-				enum class Type: uint32_t { Raw            = 0x001
-				                          , ZlibCompressed = 0x002
-				                          , Directory      = 0x400
+				enum class Type: uint32_t { Raw  = 0x001
+				                          , Zlib = 0x002
+				                          , Dir  = 0x400
 				                          };
 
 				std::string name;
