@@ -30,8 +30,8 @@ int main( int argc, char * argv[] ) {
 				Usage( "Usage: ", argv[0], " <dat file>\n" );
 		}
 
-		auto app = Gtk::Application::create( "aszarcanum.dattools" );
-		ui::AppWindow win( app );
+		auto app = Gtk::Application::create( "AszArcanum.dattools" );
+		UI::AppWindow win( app );
 		win.LoadFile( argv[1] );
 		return app->run( win );
 }

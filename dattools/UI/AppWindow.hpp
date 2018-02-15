@@ -2,16 +2,15 @@
 #define ASZARCANUM_DATTOOLS_UI_APPWINDOW_HPP
 
 #include <string>
-
-#include <boost/iostreams/device/mapped_file.hpp>
+#include <string_view>
 
 #include <gtkmm.h>
 
-#include "../datFile.hpp"
+#include "DAT1/File.hpp"
 #include "FileTreeView.hpp"
 #include "SubfileContentView.hpp"
 
-namespace AszArcanum::dattools::ui {
+namespace AszArcanum::dattools::UI {
 
 class AppWindow
 	: public Gtk::ApplicationWindow {
@@ -20,7 +19,7 @@ class AppWindow
 			: Gtk::ApplicationWindow( app )
 			, treeView( treeStore ) {
 				set_title( "AszArcanum dattools"  );
-				set_default_size( 600, 800 );
+				set_default_size( 1000, 800 );
 
 				gtkHPaned.pack1( treeView );
 				gtkHPaned.pack2( subfileContentView );
@@ -29,31 +28,16 @@ class AppWindow
 				show_all_children();
 		}
 
-		void LoadFile( string_view fName ) {
-				fileName = fName;
-				cout << "Loading \"" << fileName << '\"' << endl;
-				try {
-						memMappedFile.open( fileName );
-						handle_mmap_file( reinterpret_cast< byte const * >( memMappedFile.data() ), memMappedFile.size()
-						                , [this]( DatSubfileIndex const & index ) {
-						                  		treeStore.AppendIndex( index );
-						                  }
-						                );
-				} catch ( char const * s ) {
-						cerr << "error: " << s << endl;
-						throw;
-				} catch ( ... ) {
-						cerr << "error: could not open file" << endl;
-						throw;
-				}
-				cout << "File loaded" << endl;
-				set_title( "AszArcanum dattools (" + string( fileName ) + ")"  );
+		virtual ~AppWindow() = default;
 
+		void LoadFile( std::string_view fileName ) {
+				file = DAT1::File::LoadFrom( fileName );
+				file->ForEachSubfile( [this]( DAT1::File::SubfileIndex const & index ) {   treeStore.AppendIndex( index );   } );
+				set_title( "AszArcanum dattools (" + std::string( fileName ) + ")"  );
 		}
 
 	private:
-		std::string fileName;
-		boost::iostreams::mapped_file_source memMappedFile;
+		std::optional< DAT1::File > file;
 
 		FileTreeStore treeStore;
 
@@ -62,6 +46,6 @@ class AppWindow
 		SubfileContentView subfileContentView;
 };
 
-}
+} // namespace
 
 #endif

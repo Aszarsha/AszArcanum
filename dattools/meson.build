@@ -3,7 +3,8 @@ project( 'dattools', 'cpp'
        )
 
 sources = [ 'main.cpp'
-          , 'datFile.hpp'
+          , 'DAT1/File.hpp'
+          , 'DAT1/File.cpp'
           , 'UI/AppWindow.hpp'
           , 'UI/FileTreeStore.hpp'
           , 'UI/FileTreeView.hpp'
@@ -15,4 +16,4 @@ dep_zlib  = dependency( 'zlib' )
 dep_boost = dependency( 'boost', modules: ['iostreams'] )
 deps = [dep_gtk, dep_zlib, dep_boost]
 
-executable( 'dattools', sources, dependencies: deps )
+executable( 'dattools', sources, dependencies: deps, include_directories: include_directories( '.' ) )

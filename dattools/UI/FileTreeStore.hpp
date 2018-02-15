@@ -10,7 +10,7 @@
 
 #include <gtkmm.h>
 
-namespace AszArcanum::dattools::ui {
+namespace AszArcanum::dattools::UI {
 
 struct FileTreeStore {
 	public:
@@ -28,7 +28,7 @@ struct FileTreeStore {
 
 				Gtk::TreeModelColumn< std::string >   name;
 				Gtk::TreeModelColumn< uint32_t > unknown0;
-				Gtk::TreeModelColumn< uint32_t > type;
+				Gtk::TreeModelColumn< DAT1::File::SubfileIndex::Type > type;
 				Gtk::TreeModelColumn< uint32_t > realSize;
 				Gtk::TreeModelColumn< uint32_t > packedSize;
 				Gtk::TreeModelColumn< uint32_t > offset;
@@ -40,13 +40,15 @@ struct FileTreeStore {
 			, gtkTreeStore( Gtk::TreeStore::create( gtkRecordModel ) ) {
 		}
 
+		virtual ~FileTreeStore() = default;
+
 	public:
 		DatSubfileRecordModel       & GtkRecordModel()       {   return gtkRecordModel;   }
 		DatSubfileRecordModel const & GtkRecordModel() const {   return gtkRecordModel;   }
 
 		Glib::RefPtr< Gtk::TreeStore > const & GtkTreeStore() const {   return gtkTreeStore;   }
 
-		void AppendIndex( DatSubfileIndex const & index ) {
+		void AppendIndex( DAT1::File::SubfileIndex const & index ) {
 				TouchFile( root, index );
 		}
 
@@ -66,7 +68,7 @@ struct FileTreeStore {
 				std::optional< Gtk::TreeModel::iterator > gtkIt;
 				//^ empty if this-node is root, since root doesn't correspond to any children in gtkTree
 
-				mutable std::optional< DatSubfileIndex > fileIndex;
+				mutable std::optional< DAT1::File::SubfileIndex > fileIndex;
 				//^ empty if dir not specified in dat file but node part of another file path
 
 				mutable std::set< DatTreeNode, NameComparatorFunctor > children;
@@ -82,12 +84,12 @@ struct FileTreeStore {
 				DatTreeNode & operator=( DatTreeNode const & ) = delete;
 
 			public:
-				void SetIndexAttributes( DatSubfileIndex const & index ) const {
+				void SetIndexAttributes( DAT1::File::SubfileIndex const & index ) const {
 						fileIndex = index;
 				}
 
 				DatTreeNode const & CreateChild( std::string_view n, std::optional< Gtk::TreeModel::iterator > const & it ) const {
-						if ( fileIndex && fileIndex->data.type != to_underlying( DatSubfileIndex::Type::Directory ) ) {
+						if ( fileIndex && fileIndex->data.type != DAT1::File::SubfileIndex::Type::Directory ) {
 								throw "cannot create a child node inside a non-directory node";
 						}
 						auto p = children.emplace( n, it );
@@ -100,14 +102,8 @@ struct FileTreeStore {
 		};
 
 	private:
-		DatTreeNode root;
-
-		DatSubfileRecordModel gtkRecordModel;
-		Glib::RefPtr< Gtk::TreeStore > gtkTreeStore;
-
-	private:
-		vector< std::string_view > Tokenize( std::string_view path ) {
-				vector< std::string_view > tokens;
+		static std::vector< std::string_view > Tokenize( std::string_view path ) {
+				std::vector< std::string_view > tokens;
 				auto curPath = path;
 				while ( true ) {
 						size_t bsPos = curPath.find_first_of( '\\' );
@@ -122,6 +118,13 @@ struct FileTreeStore {
 				return tokens;
 		}
 
+	private:
+		DatTreeNode root;
+
+		DatSubfileRecordModel gtkRecordModel;
+		Glib::RefPtr< Gtk::TreeStore > gtkTreeStore;
+
+	private:
 		void SetGtkNameForNode( DatTreeNode const & node ) {
 				if ( !node.gtkIt ) {   throw "trying to set gtk name for root... duh!";   }
 				auto & row = **node.gtkIt;   //< deref optional AND iter
@@ -139,7 +142,7 @@ struct FileTreeStore {
 				row[gtkRecordModel.offset]     = node.fileIndex->data.offset;
 		}
 
-		DatTreeNode const & TouchFile( DatTreeNode const & in, DatSubfileIndex const & index ) {
+		DatTreeNode const & TouchFile( DatTreeNode const & in, DAT1::File::SubfileIndex const & index ) {
 				DatTreeNode const * pNode = &in;
 				auto tokens = Tokenize( index.name );
 				for ( size_t i = 0, e = tokens.size(); i != e; ++i ) {

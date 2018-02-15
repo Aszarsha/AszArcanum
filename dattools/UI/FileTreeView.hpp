@@ -5,12 +5,14 @@
 
 #include "FileTreeStore.hpp"
 
-namespace AszArcanum::dattools::ui {
+namespace AszArcanum::dattools::UI {
 
 class FileTreeView
-	: public Gtk::Frame {
+	: public Gtk::ScrolledWindow {
 	public:
 		FileTreeView( FileTreeStore const & treeStore ) {
+				set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
+
 				treeView.set_model( treeStore.GtkTreeStore() );
 				treeView.append_column( "File name"      , treeStore.GtkRecordModel().name );
 				treeView.append_column( "Unknown0"       , treeStore.GtkRecordModel().unknown0 );
@@ -19,16 +21,14 @@ class FileTreeView
 				treeView.append_column( "Compressed Size", treeStore.GtkRecordModel().packedSize );
 				treeView.append_column( "Offset"         , treeStore.GtkRecordModel().offset );
 
-				scrolledWindow.add( treeView );
-				scrolledWindow.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC );
-
-				add( scrolledWindow );
+				add( treeView );
 				show_all_children();
 		}
 
+		virtual ~FileTreeView() = default;
+
 	private:
 		Gtk::TreeView treeView;
-		Gtk::ScrolledWindow scrolledWindow;
 };
 
 } // namespace
