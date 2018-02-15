@@ -15,9 +15,8 @@ namespace AszArcanum::dattools::UI {
 class AppWindow
 	: public Gtk::ApplicationWindow {
 	public:
-		AppWindow( Glib::RefPtr< Gtk::Application > const & app )
-			: Gtk::ApplicationWindow( app )
-			, treeView( treeStore ) {
+		AppWindow()
+			:  treeView( treeStore ) {
 				set_title( "AszArcanum dattools"  );
 				set_default_size( 1000, 800 );
 
@@ -44,6 +43,28 @@ class AppWindow
 		Gtk::HPaned gtkHPaned;
 		FileTreeView treeView;
 		SubfileContentView subfileContentView;
+};
+
+class DattoolsApp
+	: public Gtk::Application {
+	public:
+		DattoolsApp()
+			: Gtk::Application( "AszArcanum.dattools", Gio::APPLICATION_HANDLES_OPEN ) {
+		}
+
+	public:
+		void LoadFile( std::string_view fileName ) {
+				appWindow.LoadFile( fileName );
+		}
+
+	protected:
+		void on_activate() override {
+				add_window( appWindow );
+				appWindow.present();
+		}
+
+	private:
+		AppWindow appWindow;
 };
 
 } // namespace
