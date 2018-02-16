@@ -21,6 +21,13 @@ class FileTreeView
 				treeView.append_column( "Compressed Size", treeStore.GtkRecordModel().packedSize );
 				treeView.append_column( "Offset"         , treeStore.GtkRecordModel().offset );
 
+				auto columns = treeView.get_columns();
+				std::for_each( columns.begin(), columns.end(), []( auto & col ) {
+						col->set_resizable( true );
+						col->set_expand( false );
+						col->set_min_width( 50 );
+				});
+
 				add( treeView );
 				show_all_children();
 		}
