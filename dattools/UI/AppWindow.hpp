@@ -31,7 +31,7 @@ class AppWindow
 
 		void LoadFile( std::string_view fileName ) {
 				file = DAT1::File::LoadFrom( fileName );
-				file->ForEachSubfile( [this]( DAT1::File::SubfileIndex const & index ) {   treeStore.AppendIndex( index );   } );
+				file->ForEachSubfile( [this]( DAT1::Subfile const & sf ) {   treeStore.AddSubfile( sf );   } );
 				set_title( "AszArcanum dattools (" + std::string( fileName ) + ")"  );
 		}
 

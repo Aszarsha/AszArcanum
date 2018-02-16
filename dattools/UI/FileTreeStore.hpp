@@ -10,6 +10,8 @@
 
 #include <gtkmm.h>
 
+#include "DAT1/Subfile.hpp"
+
 namespace AszArcanum::dattools::UI {
 
 struct FileTreeStore {
@@ -27,11 +29,11 @@ struct FileTreeStore {
 				}
 
 				Gtk::TreeModelColumn< std::string > name;
-				Gtk::TreeModelColumn< uint32_t >    unknown0;
+				Gtk::TreeModelColumn< std::string > unknown0;
 				Gtk::TreeModelColumn< std::string > type;
-				Gtk::TreeModelColumn< uint32_t >    realSize;
-				Gtk::TreeModelColumn< uint32_t >    packedSize;
-				Gtk::TreeModelColumn< uint32_t >    offset;
+				Gtk::TreeModelColumn< std::string > realSize;
+				Gtk::TreeModelColumn< std::string > packedSize;
+				Gtk::TreeModelColumn< std::string > offset;
 		};
 
 	public:
@@ -48,8 +50,8 @@ struct FileTreeStore {
 
 		Glib::RefPtr< Gtk::TreeStore > const & GtkTreeStore() const {   return gtkTreeStore;   }
 
-		void AppendIndex( DAT1::File::SubfileIndex const & index ) {
-				TouchFile( root, index );
+		void AddSubfile( DAT1::Subfile const & subfile ) {
+				TouchFile( root, subfile );
 		}
 
 	private:
@@ -68,8 +70,8 @@ struct FileTreeStore {
 				std::optional< Gtk::TreeModel::iterator > gtkIt;
 				//^ empty if this-node is root, since root doesn't correspond to any children in gtkTree
 
-				mutable std::optional< DAT1::File::SubfileIndex > fileIndex;
-				//^ empty if dir not specified in dat file but node part of another file path
+				mutable DAT1::Subfile const * subfile = nullptr;
+				//^ null if dir not specified in dat file but node part of another file path
 
 				mutable std::set< DatTreeNode, NameComparatorFunctor > children;
 				//^ empty if type != directory, or directory in dat file but no child (wtf file, go home)
@@ -84,12 +86,12 @@ struct FileTreeStore {
 				DatTreeNode & operator=( DatTreeNode const & ) = delete;
 
 			public:
-				void SetIndexAttributes( DAT1::File::SubfileIndex const & index ) const {
-						fileIndex = index;
+				void SetSubfile( DAT1::Subfile const & sf ) const {
+						subfile = &sf;
 				}
 
 				DatTreeNode const & CreateChild( std::string_view n, std::optional< Gtk::TreeModel::iterator > const & it ) const {
-						if ( fileIndex && fileIndex->data.type != DAT1::File::SubfileIndex::Type::Dir ) {
+						if ( subfile && subfile->GetType() != DAT1::Subfile::Type::Dir ) {
 								throw "cannot create a child node inside a non-directory node";
 						}
 						auto p = children.emplace( n, it );
@@ -102,80 +104,16 @@ struct FileTreeStore {
 		};
 
 	private:
-		static std::vector< std::string_view > Tokenize( std::string_view path ) {
-				std::vector< std::string_view > tokens;
-				auto curPath = path;
-				while ( true ) {
-						size_t bsPos = curPath.find_first_of( '\\' );
-						if ( bsPos != std::string_view::npos ) {
-								tokens.push_back( curPath.substr( 0, bsPos ) );
-								curPath = curPath.substr( bsPos+1 );
-						} else {
-								tokens.push_back( curPath );
-								break;
-						}
-				}
-				return tokens;
-		}
-
-	private:
 		DatTreeNode root;
 
 		DatSubfileRecordModel gtkRecordModel;
 		Glib::RefPtr< Gtk::TreeStore > gtkTreeStore;
 
 	private:
-		void SetGtkNameForNode( DatTreeNode const & node ) {
-				if ( !node.gtkIt ) {   throw "trying to set gtk name for root... duh!";   }
-				auto & row = **node.gtkIt;   //< deref optional AND iter
-				row[gtkRecordModel.name] = node.name;
-		}
+		void SetGtkNameForNode( DatTreeNode const & node );
+		void SetGtkAttributesForNode( DatTreeNode const & node );
 
-		void SetGtkAttributesForNode( DatTreeNode const & node ) {
-				if ( !node.gtkIt ) {   throw "trying to set gtk attributes for root... duh!";   }
-				if ( !node.fileIndex ) {   throw "trying to set attributes from uninitialized node... duh!";   }
-				auto & row = **node.gtkIt;   //< deref optional AND iter
-				row[gtkRecordModel.unknown0]   = node.fileIndex->data.unknown0;
-				switch ( node.fileIndex->data.type ) {
-					case DAT1::File::SubfileIndex::Type::Raw:
-						row[gtkRecordModel.type]  = "RAW";
-						break;
-					case DAT1::File::SubfileIndex::Type::Zlib:
-						row[gtkRecordModel.type]  = "ZLIB";
-						break;
-					case DAT1::File::SubfileIndex::Type::Dir:
-						row[gtkRecordModel.type]  = "DIR";
-						break;
-				}
-				row[gtkRecordModel.realSize]   = node.fileIndex->data.realSize;
-				row[gtkRecordModel.packedSize] = node.fileIndex->data.packedSize;
-				row[gtkRecordModel.offset]     = node.fileIndex->data.offset;
-		}
-
-		DatTreeNode const & TouchFile( DatTreeNode const & in, DAT1::File::SubfileIndex const & index ) {
-				DatTreeNode const * pNode = &in;
-				auto tokens = Tokenize( index.name );
-				for ( size_t i = 0, e = tokens.size(); i != e; ++i ) {
-						auto it = pNode->children.find( tokens[i] );
-						if ( it != pNode->children.end() ) {
-								pNode = &*it;
-						} else {
-								Gtk::TreeModel::iterator newRowIt;
-								if ( pNode->gtkIt ) {
-										auto oldRow = **pNode->gtkIt;   //< deref optional AND iter
-										newRowIt = gtkTreeStore->append( oldRow.children() );
-								} else {
-										newRowIt = gtkTreeStore->append();
-								}
-								auto & newNode = pNode->CreateChild( tokens[i], newRowIt );
-								SetGtkNameForNode( newNode );
-								pNode = &newNode;
-						}
-				}
-				pNode->SetIndexAttributes( index );
-				SetGtkAttributesForNode( *pNode );
-				return *pNode;
-		}
+		DatTreeNode const & TouchFile( DatTreeNode const & in, DAT1::Subfile const & subfile );
 };
 
 } // namespace
