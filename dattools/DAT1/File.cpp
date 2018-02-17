@@ -1,5 +1,7 @@
 #include "File.hpp"
 
+#include <gsl/gsl>
+
 using namespace std;
 
 namespace AszArcanum::dattools::DAT1 {
@@ -76,6 +78,7 @@ unique_ptr< Subfile > File::CreateSubfileFromIndex( Subfile::Index && index ) {
 				return make_unique< SubfileZlib >( move( index )
 				                                 , reinterpret_cast< byte const * >( memMappedFile.data() + index.data.offset )
 				                                 );
+			default: Ensures( !"Should never get here" );
 		}
 }
 
