@@ -34,6 +34,7 @@ void FileTreeStore::SetGtkAttributesForNode( DatTreeNode const & node ) {
 		auto & row = **node.gtkIt;   //< deref optional AND iter
 		auto & indexData = node.subfile->GetIndex().data;
 
+		row[gtkRecordModel.subfile] = node.subfile;
 		row[gtkRecordModel.unknown0] = to_string( indexData.unknown0 );
 		switch ( node.subfile->GetType() ) {
 			case DAT1::Subfile::Type::Dir: {

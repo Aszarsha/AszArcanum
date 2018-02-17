@@ -32,7 +32,6 @@ class SubfileContentView
 		virtual ~SubfileContentView() = default;
 
 		void Show( DAT1::Subfile const & sf ) {
-std::cout << "Showing " << sf.GetPathName() << std::endl;
 				switch ( sf.GetType() ) {
 					case DAT1::Subfile::Type::Dir:
 						dirCache->set_text( std::string( sf.GetPathName() ) + " is a directory." );
@@ -51,10 +50,6 @@ std::cout << "Showing " << sf.GetPathName() << std::endl;
 								                   , reinterpret_cast< char const * >( dataSpan.data() + dataSpan.size() )
 								                   );
 								it->second->set_text( Glib::convert( dataStr, "UTF-8", "ISO-8859-1" ) );
-std::cout << "CONTENT\n"
-          << Glib::convert( dataStr, "UTF-8", "ISO-8859-1" )
-          << "END OF CONTENT"
-          << std::endl;
 						}
 						textView.set_buffer( it->second );
 						set_label( std::string( sf.GetPathName() ) );

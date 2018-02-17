@@ -23,6 +23,8 @@ class AppWindow
 				gtkHPaned.pack1( treeView );
 				gtkHPaned.pack2( subfileContentView );
 
+				treeView.signal_TreeSelection().connect( sigc::mem_fun( *this, &AppWindow::FileSelected ) );
+
 				add( gtkHPaned );
 				show_all_children();
 		}
@@ -32,13 +34,16 @@ class AppWindow
 		void LoadFile( std::string_view fileName ) {
 				file = DAT1::File::LoadFrom( fileName );
 				file->ForEachSubfile( [this]( DAT1::Subfile const & sf ) {
-						static int i = 0;
-						if ( i++ == 0 ) {
-								subfileContentView.Show( sf );
-						}
 						treeStore.AddSubfile( sf );
 				});
 				set_title( "AszArcanum dattools (" + std::string( fileName ) + ")"  );
+		}
+
+		void FileSelected( Gtk::TreeModel::Path const & path ) {
+				auto sfPtr = treeStore.GetSubfileFrom( path );
+				if ( sfPtr ) {
+						subfileContentView.Show( *sfPtr );
+				}
 		}
 
 	private:

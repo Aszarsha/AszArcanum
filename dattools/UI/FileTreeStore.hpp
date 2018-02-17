@@ -26,6 +26,7 @@ struct FileTreeStore {
 						add( realSize );
 						add( packedSize );
 						add( offset );
+						add( subfile );
 				}
 
 				Gtk::TreeModelColumn< std::string > name;
@@ -34,6 +35,7 @@ struct FileTreeStore {
 				Gtk::TreeModelColumn< std::string > realSize;
 				Gtk::TreeModelColumn< std::string > packedSize;
 				Gtk::TreeModelColumn< std::string > offset;
+				Gtk::TreeModelColumn< DAT1::Subfile const * > subfile;
 		};
 
 	public:
@@ -52,6 +54,12 @@ struct FileTreeStore {
 
 		void AddSubfile( DAT1::Subfile const & subfile ) {
 				TouchFile( root, subfile );
+		}
+
+		DAT1::Subfile const * GetSubfileFrom( Gtk::TreeModel::Path const & path ) {
+				auto it = gtkTreeStore->get_iter( path );
+				auto & row = *it;
+				return row[GtkRecordModel().subfile];
 		}
 
 	private:
@@ -112,6 +120,7 @@ struct FileTreeStore {
 	private:
 		void SetGtkNameForNode( DatTreeNode const & node );
 		void SetGtkAttributesForNode( DatTreeNode const & node );
+		// These two function cannot be in DatTreeNode since they require access to gtkRecordModel
 
 		DatTreeNode const & TouchFile( DatTreeNode const & in, DAT1::Subfile const & subfile );
 };

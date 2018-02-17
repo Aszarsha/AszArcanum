@@ -28,14 +28,28 @@ class FileTreeView
 						col->set_min_width( 50 );
 				});
 
+				treeView.signal_row_activated().connect( sigc::mem_fun( *this, &FileTreeView::TreeSelectionSlot ) );
+
 				add( treeView );
 				show_all_children();
 		}
 
 		virtual ~FileTreeView() = default;
 
+		using TreeSelectionSignalType = sigc::signal< void, Gtk::TreeModel::Path const & >;
+		TreeSelectionSignalType signal_TreeSelection() {   return treeSelectionSignal;   }
+
+	private:
+
 	private:
 		Gtk::TreeView treeView;
+
+		TreeSelectionSignalType treeSelectionSignal;
+
+	private:
+		void TreeSelectionSlot( Gtk::TreeModel::Path const & path, Gtk::TreeViewColumn * ) {
+				treeSelectionSignal.emit( path );
+		}
 };
 
 } // namespace
