@@ -56,14 +56,12 @@ class Subfile {
 		Index index;
 };
 
-class SubfileDir
+class SubfileDir final
 	: public Subfile {
 	public:
 		SubfileDir( Index && index )
 			: Subfile( std::move( index ) ) {
 		}
-
-		virtual ~SubfileDir() = default;
 };
 
 class SubfileFile
@@ -77,36 +75,30 @@ class SubfileFile
 			, ptrToData( ptr ) {
 		}
 
-		virtual ~SubfileFile() = default;
-
 	protected:
 		std::byte const * ptrToData;
 };
 
-class SubfileRaw
+class SubfileRaw final
 	: public SubfileFile {
 	public:
 		SubfileRaw( Index && index, std::byte const * ptrToData )
 			: SubfileFile( std::move( index ), ptrToData ) {
 		}
 
-		virtual ~SubfileRaw() = default;
-
 	public:
-		virtual gsl::span< std::byte const > GetData() const;
+		virtual gsl::span< std::byte const > GetData() const final;
 };
 
-class SubfileZlib
+class SubfileZlib final
 	: public SubfileFile {
 	public:
 		SubfileZlib( Index && index, std::byte const * ptrToData )
 			: SubfileFile( std::move( index ), ptrToData ) {
 		}
 
-		virtual ~SubfileZlib() = default;
-
 	public:
-		virtual gsl::span< std::byte const > GetData() const;
+		virtual gsl::span< std::byte const > GetData() const final;
 
 	private:
 		mutable std::vector< std::byte > inflated;   //< initialized (zlib inflate) when required
