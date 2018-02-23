@@ -79,4 +79,4 @@ FileTreeStore::DatTreeNode const & FileTreeStore::TouchFile( DatTreeNode const &
 		return *pNode;
 }
 
-} // namespace
+} // namespace AszArcanum::dattools::UI

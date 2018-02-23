@@ -52,6 +52,6 @@ class FileTreeView
 		}
 };
 
-} // namespace
+} // namespace AszArcanum::dattools::UI
 
 #endif

@@ -21,19 +21,19 @@ Subfile::Type Subfile::GetType() const {
 
 SubfileDir & Subfile::AsDir() {
 		return dynamic_cast< SubfileDir & >( *this );
-};
+}
 
 SubfileDir const & Subfile::AsDir() const {
 		return dynamic_cast< SubfileDir const & >( *this );
-};
+}
 
 SubfileFile & Subfile::AsFile() {
 		return dynamic_cast< SubfileFile & >( *this );
-};
+}
 
 SubfileFile const & Subfile::AsFile() const {
 		return dynamic_cast< SubfileFile const & >( *this );
-};
+}
 
 // =========== SubfileRaw =========== //
 gsl::span< std::byte const > SubfileRaw::GetData() const {

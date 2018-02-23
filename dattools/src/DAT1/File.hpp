@@ -30,7 +30,7 @@ class File {
 		static File LoadFrom( std::string_view fileName );
 
 	public:
-		Footer const & GetFooter() const {   return footer;   }
+		Footer const & GetFooter() const noexcept {   return footer;   }
 
 		template< typename Func >
 		void ForEachSubfile( Func && f ) const {
@@ -51,15 +51,8 @@ class File {
 
 	private:
 		File( std::string_view fName, MemoryMappedFile && mmFile );
-
-	private:
-		void ReadFooter();
-		void ReadSubfiles();
-
-	private:
-		std::unique_ptr< Subfile > CreateSubfileFromIndex( Subfile::Index && index );
 };
 
-} // namespace
+} // namespace AszArcanum::dattools::DAT1
 
 #endif

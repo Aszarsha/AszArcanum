@@ -78,6 +78,6 @@ class DattoolsApp
 		AppWindow appWindow;
 };
 
-} // namespace
+} // namespace AszArcanum::dattools::UI
 
 #endif

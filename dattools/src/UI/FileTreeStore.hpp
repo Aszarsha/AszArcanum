@@ -125,6 +125,6 @@ struct FileTreeStore {
 		DatTreeNode const & TouchFile( DatTreeNode const & in, DAT1::Subfile const & subfile );
 };
 
-} // namespace
+} // namespace AszArcanum::dattools::UI
 
 #endif

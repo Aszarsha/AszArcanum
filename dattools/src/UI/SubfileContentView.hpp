@@ -68,6 +68,6 @@ class SubfileContentView
 		std::map< DAT1::Subfile const *, BufPtr > bufCache;
 };
 
-} // namespace
+} // namespace AszArcanum::dattools::UI
 
 #endif

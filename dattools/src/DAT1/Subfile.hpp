@@ -104,6 +104,6 @@ class SubfileZlib final
 		mutable std::vector< std::byte > inflated;   //< initialized (zlib inflate) when required
 };
 
-} // namespace
+} // namespace AszArcanum::dattools::DAT1
 
 #endif
