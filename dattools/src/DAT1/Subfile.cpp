@@ -51,10 +51,10 @@ namespace {
 			zstr.zalloc = nullptr;
 			zstr.zfree  = nullptr;
 			zstr.opaque = nullptr;
-			// NOLINTNEXTLINE( )
+			// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
 			zstr.next_in  = const_cast< Bytef *>( reinterpret_cast< Bytef const * >( data ) );
 			zstr.avail_in = packedSize;
-			// NOLINTNEXTLINE( )
+			// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
 			zstr.next_out  = reinterpret_cast< Bytef * >( outData.data() );
 			zstr.avail_out = realSize;
 			if ( inflateInit( &zstr ) != Z_OK ) {
