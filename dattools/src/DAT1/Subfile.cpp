@@ -2,12 +2,10 @@
 
 #include <zlib.h>
 
-using namespace std;
-
 namespace AszArcanum::dattools::DAT1 {
 
 // =========== Subfile =========== //
-Subfile::~Subfile() {   }
+Subfile::~Subfile() = default;
 
 Subfile::Index const & Subfile::GetIndex() const {
 		return index;
@@ -26,7 +24,7 @@ SubfileDir & Subfile::AsDir() {
 };
 
 SubfileDir const & Subfile::AsDir() const {
-		return const_cast< Subfile * >( this )->AsDir();
+		return dynamic_cast< SubfileDir const & >( *this );
 };
 
 SubfileFile & Subfile::AsFile() {
@@ -34,7 +32,7 @@ SubfileFile & Subfile::AsFile() {
 };
 
 SubfileFile const & Subfile::AsFile() const {
-		return const_cast< Subfile * >( this )->AsFile();
+		return dynamic_cast< SubfileFile const & >( *this );
 };
 
 // =========== SubfileRaw =========== //
@@ -44,17 +42,19 @@ gsl::span< std::byte const > SubfileRaw::GetData() const {
 
 // =========== SubfileZlib =========== //
 namespace {
-	vector< std::byte > zlibInflate( std::byte const * data, size_t realSize, size_t packedSize ) {
+	std::vector< std::byte > zlibInflate( std::byte const * data, size_t realSize, size_t packedSize ) {
 			Expects( data != nullptr );
 			Expects( realSize != 0 );
 
-			vector< std::byte > outData( realSize );
-			z_stream zstr;
+			std::vector< std::byte > outData( realSize );
+			z_stream zstr{};
 			zstr.zalloc = nullptr;
 			zstr.zfree  = nullptr;
 			zstr.opaque = nullptr;
-			zstr.next_in  = const_cast< Bytef * >( reinterpret_cast< Bytef const * >( data ) );
+			// NOLINTNEXTLINE( )
+			zstr.next_in  = const_cast< Bytef *>( reinterpret_cast< Bytef const * >( data ) );
 			zstr.avail_in = packedSize;
+			// NOLINTNEXTLINE( )
 			zstr.next_out  = reinterpret_cast< Bytef * >( outData.data() );
 			zstr.avail_out = realSize;
 			if ( inflateInit( &zstr ) != Z_OK ) {
@@ -68,7 +68,7 @@ namespace {
 			}
 			return outData;
 	}
-}
+} // namespace
 
 gsl::span< std::byte const > SubfileZlib::GetData() const {
 		if ( inflated.empty() ) {
@@ -77,4 +77,4 @@ gsl::span< std::byte const > SubfileZlib::GetData() const {
 		return gsl::span< std::byte >{ inflated };
 }
 
-} // namespace
+} // namespace AszArcanum::dattools::DAT1

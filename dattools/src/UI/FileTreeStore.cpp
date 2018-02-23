@@ -30,7 +30,7 @@ void FileTreeStore::SetGtkNameForNode( DatTreeNode const & node ) {
 
 void FileTreeStore::SetGtkAttributesForNode( DatTreeNode const & node ) {
 		if ( !node.gtkIt ) {   throw "trying to set gtk attributes for root... duh!";   }
-		if ( !node.subfile ) {   throw "trying to set attributes from uninitialized node... duh!";   }
+		if ( node.subfile == nullptr ) {   throw "trying to set attributes from uninitialized node... duh!";   }
 		auto & row = **node.gtkIt;   //< deref optional AND iter
 		auto & indexData = node.subfile->GetIndex().data;
 

@@ -2,13 +2,14 @@
 
 #include <gsl/gsl>
 
-using namespace std;
+using std::move;
+using std::string_view;
 
 namespace AszArcanum::dattools::DAT1 {
 
 File File::LoadFrom( std::string_view fileName ) {
 		std::cout << "Loading \"" << fileName << '\"' << std::endl;
-		MemoryMappedFile mmFile;
+		MemoryMappedFile mmFile{};
 		try {
 				mmFile.open( std::string( fileName ) );
 		} catch ( char const * s ) {
@@ -20,64 +21,73 @@ File File::LoadFrom( std::string_view fileName ) {
 		}
 		std::cout << "File loaded" << std::endl;
 
-		return File( fileName, move( mmFile ) );
+		return File{ fileName, move( mmFile ) };
 }
 
-File::File( string_view fName, boost::iostreams::mapped_file_source && mmfile )
-	: fileName( fName )
-	, memMappedFile( move( mmfile ) ) {
+File::File( string_view fName, boost::iostreams::mapped_file_source && mmFile )
+	: fileName{ fName }
+	, memMappedFile{ move( mmFile ) }
+	, footer{} {
 		ReadFooter();
 		ReadSubfiles();
 }
 
 void File::ReadFooter() {
-		auto addr = reinterpret_cast< byte const * >( memMappedFile.data() );
+		// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
+		auto addr = reinterpret_cast< std::byte const * >( memMappedFile.data() );
 		auto size = memMappedFile.size();
 		memcpy( &footer, addr + size - sizeof( footer ), sizeof( footer ) );
 }
 
 namespace {
-	inline void ReadBytesFromDataPtr( byte const* & data, byte * to, size_t sz ) {
+	inline void ReadBytesFromDataPtr( std::byte const* & data, std::byte * to, size_t sz ) {
 			memcpy( to, data, sz );
+			// NOLINTNEXTLINE( cppcoreguidelines-pro-bounds-pointer-arithmetic )
 			data += sz;
 	}
 
 	template< typename Type >
-	inline Type ReadTypeFromDataPtr( byte const* & data ) {
+	inline Type ReadTypeFromDataPtr( std::byte const* & data ) {
 			Type out;
+			// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
 			ReadBytesFromDataPtr( data, reinterpret_cast< std::byte * >( &out ), sizeof( out ) );
 			return out;
 	}
 }
 
 void File::ReadSubfiles() {
-		auto baseAddr = reinterpret_cast< byte const * >( memMappedFile.data() + memMappedFile.size() - footer.treeDescOffset );
+		// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
+		auto baseAddr = reinterpret_cast< std::byte const * >( memMappedFile.data() + memMappedFile.size() - footer.treeDescOffset );
 		auto data = baseAddr;
-		uint32_t numSubfiles = ReadTypeFromDataPtr< uint32_t >( data );
+		auto numSubfiles = ReadTypeFromDataPtr< uint32_t >( data );
 		for ( uint32_t i = 0; i != numSubfiles; ++i ) {
 				Subfile::Index index;
-				uint32_t filenameSz = ReadTypeFromDataPtr< uint32_t >( data );
+				auto filenameSz = ReadTypeFromDataPtr< uint32_t >( data );
 				index.pathName.resize( filenameSz-1 );   // do not count the included null-termination
+				// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
 				ReadBytesFromDataPtr( data, reinterpret_cast< std::byte * >( &index.pathName[0] ), filenameSz-1 );
 				data += 1;   // skip null-termination char
+				// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
 				ReadBytesFromDataPtr( data, reinterpret_cast< std::byte * >( &index.data ), sizeof( index.data ) );
 
 				subfiles.emplace_back( CreateSubfileFromIndex( move( index ) ) );
 		}
 }
 
-unique_ptr< Subfile > File::CreateSubfileFromIndex( Subfile::Index && index ) {
+std::unique_ptr< Subfile > File::CreateSubfileFromIndex( Subfile::Index && index ) {
 		switch ( index.data.type ) {
 			case Subfile::Type::Dir:
-				return make_unique< SubfileDir  >( move( index ) );
+				return std::make_unique< SubfileDir  >( move( index ) );
 			case Subfile::Type::Raw:
-				return make_unique< SubfileRaw  >( move( index )
-				                                 , reinterpret_cast< byte const * >( memMappedFile.data() + index.data.offset )
-				                                 );
+				return std::make_unique< SubfileRaw  >( move( index )
+				// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
+				                                      , reinterpret_cast< std::byte const * >( memMappedFile.data() + index.data.offset )
+				                                      );
 			case Subfile::Type::Zlib:
-				return make_unique< SubfileZlib >( move( index )
-				                                 , reinterpret_cast< byte const * >( memMappedFile.data() + index.data.offset )
-				                                 );
+				return std::make_unique< SubfileZlib >( move( index )
+				// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
+				                                      , reinterpret_cast< std::byte const * >( memMappedFile.data() + index.data.offset )
+				                                      );
 			default: Ensures( !"Should never get here" );
 		}
 }

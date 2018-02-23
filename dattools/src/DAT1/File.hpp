@@ -50,7 +50,7 @@ class File {
 		std::vector< std::unique_ptr< Subfile > > subfiles;
 
 	private:
-		File( std::string_view fileName, MemoryMappedFile && memMappedFile );
+		File( std::string_view fName, MemoryMappedFile && mmFile );
 
 	private:
 		void ReadFooter();
