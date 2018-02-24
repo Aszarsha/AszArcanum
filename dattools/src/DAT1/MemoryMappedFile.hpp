@@ -7,6 +7,8 @@
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
+#include "zstring_view.hpp"
+
 namespace AszArcanum::dattools::DAT1 {
 
 class ReadOnlyMemoryMappedFile {
@@ -14,8 +16,8 @@ class ReadOnlyMemoryMappedFile {
 		using DataSpanT = gsl::span< std::byte const >;
 
 	public:
-		explicit ReadOnlyMemoryMappedFile( std::string_view fileName )
-			: mappedFile( std::string( fileName ) ) {
+		explicit ReadOnlyMemoryMappedFile( zstring_view fileName )
+			: mappedFile( std::string( fileName.data(), fileName.size() ) ) {
 		}
 
 	public:

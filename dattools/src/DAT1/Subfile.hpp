@@ -5,10 +5,11 @@
 
 #include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include <gsl/gsl>
+
+#include "zstring_view.hpp"
 
 namespace AszArcanum::dattools::DAT1 {
 
@@ -43,7 +44,7 @@ class Subfile {
 	public:
 		Index const & GetIndex() const;
 
-		std::string_view GetPathName() const;
+		zstring_view GetPathName() const;
 		Type GetType() const;
 
 		SubfileDir        & AsDir();

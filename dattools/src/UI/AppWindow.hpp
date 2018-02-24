@@ -2,10 +2,10 @@
 #define ASZARCANUM_DATTOOLS_UI_APPWINDOW_HPP
 
 #include <string>
-#include <string_view>
 
 #include <gtkmm.h>
 
+#include "zstring_view.hpp"
 #include "DAT1/File.hpp"
 #include "FileTreeView.hpp"
 #include "SubfileContentView.hpp"
@@ -31,7 +31,7 @@ class AppWindow
 
 		virtual ~AppWindow() = default;
 
-		void LoadFile( std::string_view fileName ) {
+		void LoadFile( zstring_view fileName ) {
 				file = DAT1::File::LoadFrom( fileName );
 				file->ForEachSubfile( [this]( DAT1::Subfile const & sf ) {
 						treeStore.AddSubfile( sf );
@@ -64,7 +64,7 @@ class DattoolsApp
 		}
 
 	public:
-		void LoadFile( std::string_view fileName ) {
+		void LoadFile( zstring_view fileName ) {
 				appWindow.LoadFile( fileName );
 		}
 

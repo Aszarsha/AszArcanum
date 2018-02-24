@@ -11,6 +11,7 @@
 
 #include <zlib.h>
 
+#include "zstring_view.hpp"
 #include "MemoryMappedFile.hpp"
 #include "Subfile.hpp"
 
@@ -26,7 +27,7 @@ class File {
 		};
 
 	public:
-		static File LoadFrom( std::string_view fileName );
+		static File LoadFrom( zstring_view fileName );
 
 	public:
 		Footer const & GetFooter() const noexcept {   return footer;   }
@@ -46,7 +47,7 @@ class File {
 		std::vector< std::unique_ptr< Subfile > > subfiles;
 
 	private:
-		File( std::string_view fName, ReadOnlyMemoryMappedFile && memMappedFile );
+		File( zstring_view fName, ReadOnlyMemoryMappedFile && memMappedFile );
 };
 
 } // namespace AszArcanum::dattools::DAT1

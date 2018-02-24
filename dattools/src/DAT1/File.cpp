@@ -6,7 +6,7 @@ using std::move;
 
 namespace AszArcanum::dattools::DAT1 {
 
-File File::LoadFrom( std::string_view fileName ) {
+File File::LoadFrom( zstring_view fileName ) {
 		std::cout << "Loading \"" << fileName << '\"' << std::endl;
 		try {
 				return File{ fileName, ReadOnlyMemoryMappedFile{ fileName } };
@@ -83,7 +83,7 @@ namespace {
 	}
 } // namespace
 
-File::File( std::string_view fName, ReadOnlyMemoryMappedFile && memMappedFile )
+File::File( zstring_view fName, ReadOnlyMemoryMappedFile && memMappedFile )
 	: fileName{ fName }
 	, mappedFile{ move( memMappedFile ) }
 	, footer{ ReadFooter( mappedFile.GetData() ) }

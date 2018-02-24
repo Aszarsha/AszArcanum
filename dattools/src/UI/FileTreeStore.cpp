@@ -56,7 +56,7 @@ void FileTreeStore::SetGtkAttributesForNode( DatTreeNode const & node ) {
 
 FileTreeStore::DatTreeNode const & FileTreeStore::TouchFile( DatTreeNode const & in, DAT1::Subfile const & subfile ) {
 		DatTreeNode const * pNode = &in;
-		auto tokens = Tokenize( subfile.GetPathName() );
+		auto tokens = Tokenize( subfile.GetPathName().to_string_view() );
 		for ( size_t i = 0, e = tokens.size(); i != e; ++i ) {
 				auto it = pNode->children.find( tokens[i] );
 				if ( it != pNode->children.end() ) {

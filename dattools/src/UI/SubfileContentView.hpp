@@ -52,7 +52,7 @@ class SubfileContentView
 								it->second->set_text( Glib::convert( dataStr, "UTF-8", "ISO-8859-1" ) );
 						}
 						textView.set_buffer( it->second );
-						set_label( std::string( sf.GetPathName() ) );
+						set_label( sf.GetPathName().data() );
 						break;
 				}
 		}

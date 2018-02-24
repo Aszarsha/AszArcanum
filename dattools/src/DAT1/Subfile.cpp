@@ -11,7 +11,7 @@ Subfile::Index const & Subfile::GetIndex() const {
 		return index;
 }
 
-std::string_view Subfile::GetPathName() const {
+zstring_view Subfile::GetPathName() const {
 		return GetIndex().pathName;
 }
 
@@ -37,7 +37,7 @@ SubfileFile const & Subfile::AsFile() const {
 
 // =========== SubfileRaw =========== //
 gsl::span< std::byte const > SubfileRaw::GetData() const {
-		return gsl::span{ ptrToData, GetIndex().data.realSize };
+		return { ptrToData, GetIndex().data.realSize };
 }
 
 // =========== SubfileZlib =========== //
@@ -47,6 +47,7 @@ namespace {
 			Expects( realSize != 0 );
 
 			std::vector< std::byte > outData( realSize );
+
 			z_stream zstr{};
 			zstr.zalloc = nullptr;
 			zstr.zfree  = nullptr;
@@ -66,6 +67,7 @@ namespace {
 			if ( inflateEnd( &zstr ) != Z_OK ) {
 					throw "Ugh";
 			}
+
 			return outData;
 	}
 } // namespace
@@ -74,7 +76,7 @@ gsl::span< std::byte const > SubfileZlib::GetData() const {
 		if ( inflated.empty() ) {
 				inflated = zlibInflate( ptrToData, GetIndex().data.realSize, GetIndex().data.packedSize );
 		}
-		return gsl::span< std::byte >{ inflated };
+		return { inflated };
 }
 
 } // namespace AszArcanum::dattools::DAT1
