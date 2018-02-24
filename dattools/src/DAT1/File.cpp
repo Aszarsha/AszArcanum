@@ -8,27 +8,22 @@ namespace AszArcanum::dattools::DAT1 {
 
 File File::LoadFrom( std::string_view fileName ) {
 		std::cout << "Loading \"" << fileName << '\"' << std::endl;
-		MemoryMappedFile mmFile{};
 		try {
-				mmFile.open( std::string( fileName ) );
-		} catch ( char const * s ) {
-				std::cerr << "error: " << s << std::endl;
-				throw;
+				return File{ fileName, ReadOnlyMemoryMappedFile{ fileName } };
 		} catch ( ... ) {
 				std::cerr << "error: could not open file" << std::endl;
 				throw;
 		}
 		std::cout << "File loaded" << std::endl;
 
-		return File{ fileName, move( mmFile ) };
 }
 
 namespace {
-	auto ReadFooter( std::byte const * fileData, size_t fileSize ) noexcept {
+	auto ReadFooter( gsl::span< std::byte const > fileDataSpan ) noexcept {
 			File::Footer footer{};
 
-			std::advance( fileData, fileSize - sizeof( footer ) );
-			memcpy( &footer, fileData, sizeof( footer ) );
+			auto footerDataSpan = fileDataSpan.last( sizeof( footer ) );
+			memcpy( &footer, footerDataSpan.data(), sizeof( footer ) );
 
 			return footer;
 	}
@@ -61,16 +56,19 @@ namespace {
 			}
 	}
 
-	auto ReadSubfiles( std::byte const * fileData, size_t subfilesOffset ) {
+	auto ReadSubfiles( gsl::span< std::byte const > fileDataSpan, size_t subfilesDescOffset ) {
 			std::vector< std::unique_ptr< Subfile > > subfiles;
 
-			auto curDataPtr = fileData;
-			std::advance( curDataPtr, subfilesOffset );
-			auto numSubfiles = ReadTypeFromDataPtr< uint32_t >( curDataPtr );
+			auto const fileData = fileDataSpan.data();
+			auto const subfilesDataSpan = fileDataSpan.subspan( fileDataSpan.size() - subfilesDescOffset
+			                                                  , subfilesDescOffset - sizeof( File::Footer )
+			                                                  );
+			auto curDataPtr = subfilesDataSpan.data();   // TODO get rid of raw pointer eventually
+			auto const numSubfiles = ReadTypeFromDataPtr< uint32_t >( curDataPtr );
 			for ( uint32_t i = 0; i != numSubfiles; ++i ) {
 					Subfile::Index index;
 
-					auto filenameSz = ReadTypeFromDataPtr< uint32_t >( curDataPtr );
+					auto const filenameSz = ReadTypeFromDataPtr< uint32_t >( curDataPtr );
 					index.pathName.resize( filenameSz-1 );   // do not count the included null-termination
 					// NOLINTNEXTLINE( cppcoreguidelines-pro-type-reinterpret-cast )
 					ReadBytesFromDataPtr( curDataPtr, reinterpret_cast< std::byte * >( &index.pathName[0] ), filenameSz-1 );
@@ -85,11 +83,11 @@ namespace {
 	}
 } // namespace
 
-File::File( std::string_view fName, boost::iostreams::mapped_file_source && mmFile )
+File::File( std::string_view fName, ReadOnlyMemoryMappedFile && memMappedFile )
 	: fileName{ fName }
-	, memMappedFile{ move( mmFile ) }
-	, footer{ ReadFooter( reinterpret_cast< std::byte const * >( memMappedFile.data() ), memMappedFile.size() ) }
-	, subfiles{ ReadSubfiles( reinterpret_cast< std::byte const * >( memMappedFile.data() ), memMappedFile.size() - footer.treeDescOffset ) } {
+	, mappedFile{ move( memMappedFile ) }
+	, footer{ ReadFooter( mappedFile.GetData() ) }
+	, subfiles{ ReadSubfiles( mappedFile.GetData(), footer.subfilesDescriptionsOffset ) } {
 }
 
 } // namespace AszArcanum::dattools::DAT1

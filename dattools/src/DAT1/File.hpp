@@ -11,8 +11,7 @@
 
 #include <zlib.h>
 
-#include <boost/iostreams/device/mapped_file.hpp>
-
+#include "MemoryMappedFile.hpp"
 #include "Subfile.hpp"
 
 namespace AszArcanum::dattools::DAT1 {
@@ -23,7 +22,7 @@ class File {
 				std::byte unknown0[16];
 				uint32_t  dat1Tag;
 				uint32_t  unknown1;
-				uint32_t  treeDescOffset;
+				uint32_t  subfilesDescriptionsOffset;
 		};
 
 	public:
@@ -40,17 +39,14 @@ class File {
 		}
 
 	private:
-		using MemoryMappedFile = boost::iostreams::mapped_file_source;
-
-	private:
 		std::string fileName;
-		MemoryMappedFile memMappedFile;
+		ReadOnlyMemoryMappedFile mappedFile;
 
 		Footer footer;
 		std::vector< std::unique_ptr< Subfile > > subfiles;
 
 	private:
-		File( std::string_view fName, MemoryMappedFile && mmFile );
+		File( std::string_view fName, ReadOnlyMemoryMappedFile && memMappedFile );
 };
 
 } // namespace AszArcanum::dattools::DAT1
